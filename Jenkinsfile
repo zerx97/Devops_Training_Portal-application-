@@ -1,71 +1,73 @@
 pipeline{
 
-    agent any 
+    agent none
 
     environment{
-        APP_CONTAINER = "portal_app"
-        MYSQL_CONTAINER = "portal_mysql"
+        APP_NAME = "devops-training-portal"
+
     }
 
-
     stages{
-
-        stage("checkout"){
+        stage("checkout on build-agent"){
+            agent{
+                label "build-agent"
+            }
             steps{
-                git branch: "main",
-                url: "https://github.com/zerx97/Devops_Training_Portal-application-.git"
+                deleteDir()
+                checkout scm
             }
         }
 
-        stage("Maven Build"){
+        stage("Maven build"){
+            agent{
+                label "build-agent"
+            }
             steps{
-
                 sh 'mvn clean package'
             }
         }
 
-        stage("Deploy Containers"){
+        stage("docker build test on build agent"){
+            agent{
+                label "build-agent"
+            }
+            steps{
+                sh 'docker build -t devops-traning-portal:latest .' 
+            }
+        }
+
+        stage('checkout on deploy agent'){
+            agent{
+                label "deploy-agent"
+
+            }
+
+            steps{
+                deleteDir()
+                checkout scm    
+            }
+        }
+
+        stage("deploy on deploy agent"){
+            agent{
+                label "deploy-agent"
+            }
             steps{
                 sh ''' 
                     docker-compose down || true
-
                     docker-compose up -d --build
-
-                '''
-            }
-        }
-
-        stage("verify containers"){
-            steps{
-                sh 'docker-compose ps'
-            }
-        }
-
-        stage("Application health check"){
-            steps{
-                sh ''' 
-                    echo "waiting for application to come up..."
-                    sleep 20
-                    curl -f http://localhost:8081 || exit 1
-
+                
                 '''
             }
         }
     }
-
-    post{
+    post {
         success{
-            echo "Application deployed successfully"
+            echo "Application built and deployed successfully using build-agent and deploy-agent"
         }
+
         failure{
-            echo "Deployment failed.. Fetching logs ..."
-            sh "docker-compose ps || true"
-            sh "docker-compose logs portal_app || true"   
-            sh "docker-compose logs portal_mysql || true" 
-        }
-        always{
-            echo "*********Pipeline Finished*********"
+            echo "Pipeline failed. Check stage logs."
         }
     }
-
 }
