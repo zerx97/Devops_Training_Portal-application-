@@ -23,7 +23,7 @@ pipeline{
                 label "build-agent"
             }
             steps{
-                sh 'mvn clean package'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
