@@ -9,7 +9,7 @@ services:
       MYSQL_USER: portal_user
       MYSQL_PASSWORD: Portal@123
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -27,7 +27,7 @@ services:
        mysql:
          condition: service_healthy
     ports:
-      - "8081:8080"
+      - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/devops_portal
       SPRING_DATASOURCE_USERNAME: portal_user
