@@ -32,7 +32,7 @@ pipeline{
                 label "build-agent"
             }
             steps{
-                sh 'docker build -t devops-traning-portal:latest .' 
+                sh "docker build -t ${APP_NAME}:latest ."
             }
         }
 
