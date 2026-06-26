@@ -8,6 +8,9 @@ pipeline{
         APP_NAME = "devops-training-portal"
 
     }
+    tools {
+        maven 'Maven-3.9'   // must match the name you gave in Jenkins Tool'
+    }
 
     stages{
         stage("checkout"){
