@@ -21,7 +21,7 @@ services:
       start_period: 30s
 
   app:
-    build: .
+    image: devops-training-portal:latest
     container_name: portal-app
     depends_on: 
        mysql:
