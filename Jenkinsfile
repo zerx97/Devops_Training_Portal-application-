@@ -1,6 +1,8 @@
 pipeline{
 
-    agent none
+    agent {
+        label "build-agent"
+    }
 
     environment{
         APP_NAME = "devops-training-portal"
@@ -8,10 +10,7 @@ pipeline{
     }
 
     stages{
-        stage("checkout on build-agent"){
-            agent{
-                label "build-agent"
-            }
+        stage("checkout"){
             steps{
                 deleteDir()
                 checkout scm
@@ -19,43 +18,22 @@ pipeline{
         }
 
         stage("Maven build"){
-            agent{
-                label "build-agent"
-            }
             steps{
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean package'
             }
         }
 
-        stage("docker build test on build agent"){
-            agent{
-                label "build-agent"
-            }
+        stage("docker build"){  
             steps{
-                sh "docker build -t ${APP_NAME}:latest ."
-            }
-        }
-
-        stage('checkout on deploy agent'){
-            agent{
-                label "deploy-agent"
-
-            }
-
-            steps{
-                deleteDir()
-                checkout scm    
+                sh "docker build -t ${APP_NAME}:latest ." 
             }
         }
 
         stage("deploy on deploy agent"){
-            agent{
-                label "deploy-agent"
-            }
             steps{
                 sh ''' 
                     docker-compose down || true
-                    docker-compose up -d --build
+                    docker-compose up -d
                 
                 '''
             }
@@ -63,7 +41,7 @@ pipeline{
     }
     post {
         success{
-            echo "Application built and deployed successfully using build-agent and deploy-agent"
+            echo "Application built and deployed successfully using build-agent"
         }
 
         failure{
