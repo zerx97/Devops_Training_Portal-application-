@@ -53,8 +53,8 @@ pipeline{
             }
         }
         
-        #Login to ECR using IAM Role (no password needed)
-        #Push both tags
+        //Login to ECR using IAM Role (no password needed)
+        //Push both tags
         stage("Push to ECR"){
             steps{
                 sh """ 
