@@ -45,49 +45,22 @@ pipeline{
                     // Fetch entire secret as JSON string
                     def secretJson = sh (
                             script: """ 
-                            aws secretsmanager get-secret-value --secret-id ${SECRET_NAME} --region ${AWS-REGION} \
+                            aws secretsmanager get-secret-value --secret-id ${SECRET_NAME} --region ${AWS_REGION} \
                             --query SecretString --output text
                         """,
                         returnStdout: true
                     ).trim()
 
-                    // ✅ Use jq to parse each value individually
-                    // No Groovy JSON parsing — no sandbox issues
+                    // Parse JSON and set each value as env variable
+                    def secrets = readJSON text: secretJson
 
-                    env.MYSQL_ROOT_PASSWORD = sh(
-                script: "echo '${secretJson}' | jq -r '.MYSQL_ROOT_PASSWORD'",
-                returnStdout: true
-            ).trim()
-
-            env.MYSQL_DATABASE = sh(
-                script: "echo '${secretJson}' | jq -r '.MYSQL_DATABASE'",
-                returnStdout: true
-            ).trim()
-
-            env.MYSQL_USER = sh(
-                script: "echo '${secretJson}' | jq -r '.MYSQL_USER'",
-                returnStdout: true
-            ).trim()
-
-            env.MYSQL_PASSWORD = sh(
-                script: "echo '${secretJson}' | jq -r '.MYSQL_PASSWORD'",
-                returnStdout: true
-            ).trim()
-
-            env.SPRING_DATASOURCE_URL = sh(
-                script: "echo '${secretJson}' | jq -r '.SPRING_DATASOURCE_URL'",
-                returnStdout: true
-            ).trim()
-
-            env.SPRING_DATASOURCE_USERNAME = sh(
-                script: "echo '${secretJson}' | jq -r '.SPRING_DATASOURCE_USERNAME'",
-                returnStdout: true
-            ).trim()
-
-            env.SPRING_DATASOURCE_PASSWORD = sh(
-                script: "echo '${secretJson}' | jq -r '.SPRING_DATASOURCE_PASSWORD'",
-                returnStdout: true
-            ).trim()
+                    env.MYSQL_ROOT_PASSWORD        = secrets.MYSQL_ROOT_PASSWORD
+                    env.MYSQL_DATABASE             = secrets.MYSQL_DATABASE
+                    env.MYSQL_USER                 = secrets.MYSQL_USER
+                    env.MYSQL_PASSWORD             = secrets.MYSQL_PASSWORD
+                    env.SPRING_DATASOURCE_URL      = secrets.SPRING_DATASOURCE_URL
+                    env.SPRING_DATASOURCE_USERNAME = secrets.SPRING_DATASOURCE_USERNAME
+                    env.SPRING_DATASOURCE_PASSWORD = secrets.SPRING_DATASOURCE_PASSWORD
                     
                     echo "✅ Secrets fetched successfully"
                 }
