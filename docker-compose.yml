@@ -23,7 +23,7 @@ services:
 
   app:
   # 👇 Pull from ECR instead of local build
-    image: 110425445190.dkr.ecr.us-east-1.amazonaws.com/devops-training-portal:latest
+    image: ${IMAGE_URI:-110425445190.dkr.ecr.us-east-1.amazonaws.com/devops-training-portal:latest}
     container_name: portal-app
     restart: always
     depends_on: 
