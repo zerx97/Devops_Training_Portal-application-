@@ -54,13 +54,13 @@ pipeline{
                     // Parse JSON and set each value as env variable
                     def secrets = readJSON text: secretJson
  
-                    evn.MYSQL_ROOT_PASSWORD        = secrets.MYSQL_ROOT_PASSWORD
-                    env.MYSQL_DATABASE             = secrets.MYSQL_DATABASE
-                    env.MYSQL_USER                 = secrets.MYSQL_USER
-                    env.MYSQL_PASSWORD             = secrets.MYSQL_PASSWORD
-                    env.SPRING_DATASOURCE_URL      = secrets.SPRING_DATASOURCE_URL
-                    env.SPRING_DATASOURCE_USERNAME = secrets.SPRING_DATASOURCE_USERNAME
-                    env.SPRING_DATASOURCE_PASSWORD = secrets.SPRING_DATASOURCE_PASSWORD
+                    env.MYSQL_ROOT_PASSWORD        = secrets['MYSQL_ROOT_PASSWORD']
+                    env.MYSQL_DATABASE             = secrets['MYSQL_DATABASE']
+                    env.MYSQL_USER                 = secrets['MYSQL_USER']
+                    env.MYSQL_PASSWORD             = secrets['MYSQL_PASSWORD']
+                    env.SPRING_DATASOURCE_URL      = secrets['SPRING_DATASOURCE_URL']
+                    env.SPRING_DATASOURCE_USERNAME = secrets['SPRING_DATASOURCE_USERNAME']
+                    env.SPRING_DATASOURCE_PASSWORD = secrets['SPRING_DATASOURCE_PASSWORD']
                     echo "✅ Secrets fetched successfully"
                 }
             }       
