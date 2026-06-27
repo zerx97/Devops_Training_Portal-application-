@@ -3,6 +3,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: portal-mysql
+    restart: always 
     environment:
       MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: devops_portal
@@ -21,8 +22,10 @@ services:
       start_period: 30s
 
   app:
-    image: devops-training-portal:latest
+  # 👇 Pull from ECR instead of local build
+    image: 110425445190.dkr.ecr.us-east-1.amazonaws.com/devops-training-portal:latest
     container_name: portal-app
+    restart: always
     depends_on: 
        mysql:
          condition: service_healthy
