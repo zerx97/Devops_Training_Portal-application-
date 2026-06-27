@@ -6,6 +6,9 @@ pipeline{
 
     environment{
         APP_NAME = "devops-training-portal"
+        AWS_REGION = "us-east-1"
+        ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com/devops-training-portal"
+        IMAGE_TAG = "${BUILD_NUMBER}"
 
     }
     tools {
@@ -22,17 +25,35 @@ pipeline{
 
         stage("Maven build"){
             steps{
-                sh 'mvn clean package -DskipTests'
+                sh "mvn clean package -DskipTests"
             }
         }
 
         stage("docker build"){  
             steps{
-                sh "docker build -t ${APP_NAME}:latest ." 
+                sh """ 
+                docker build -t ${APP_NAME}:${IMAGE_TAG} .
+                docker tag ${APP_NAME}:${IMAGE_TAG} ${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
+                docker tag ${APP_NAME}:${IMAGE_TAG} ${ECR_REGISTRY}/${APP_NAME}:latest
+                """
             }
         }
 
-        stage("deploy on deploy agent"){
+        stage("Push to ECR"){
+            steps{
+                sh """ 
+                #Login to ECR using IAM Role (no password needed)
+                aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+
+                #Push both tags
+                docker push ${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
+                docker push ${ECR_REGISTRY}/${APP_NAME}:latest
+                
+                """
+            }
+        }
+
+        stage("deploy on build agent"){
             steps{
                 sh ''' 
                     docker-compose down || true
@@ -44,11 +65,13 @@ pipeline{
     }
     post {
         success{
-            echo "Application built and deployed successfully using build-agent"
+            echo "✅ Built, pushed to ECR and deployed successfully! Build #${BUILD_NUMBER}"
+
+            echo "✅ Application built and deployed successfully using build-agent"
         }
 
         failure{
-            echo "Pipeline failed. Check stage logs."
+            echo "❌ Pipeline failed. Check stage logs."
         }
     }
 }
