@@ -7,7 +7,7 @@ pipeline{
     environment{
         APP_NAME = "devops-training-portal"
         AWS_REGION = "us-east-1"
-        ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com/devops-training-portal"
+        ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com"
         IMAGE_TAG = "${BUILD_NUMBER}"
 
     }
