@@ -26,7 +26,7 @@ pipeline{
         stage("Getting Git SHA as image-tag"){
             steps{
                 script{
-                    df gitCommit = sh(
+                    def gitCommit = sh(
                     script: "git rev-parse --short HEAD",
                     returnStdout: true
                     ).trim()
@@ -69,13 +69,13 @@ pipeline{
 
         stage("deploy on build agent"){
             steps{
-                sh ''' 
+                sh """
                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
                     export IMAGE_URI=${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
                     docker-compose down || true
                     docker-compose up -d
                 
-                '''
+                """
             }
         }
     }
