@@ -45,7 +45,7 @@ pipeline{
                     // Fetch entire secret as JSON string
                     def secretJson = sh (
                             script: """ 
-                            aws secretmanager get-secret-value --secret-id ${SECRET_NAME} --region ${AWS-REGION} \
+                            aws secretsmanager get-secret-value --secret-id ${SECRET_NAME} --region ${AWS-REGION} \
                             --query SecretString --output text
                         """,
                         returnStdout: true
