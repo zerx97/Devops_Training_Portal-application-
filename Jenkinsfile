@@ -8,11 +8,9 @@ pipeline{
         APP_NAME = "devops-training-portal"
         AWS_REGION = "us-east-1"
         ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com"
-        IMAGE_TAG = "${BUILD_NUMBER}"
-
     }
     tools {
-        maven 'Maven-3.9'   // must match the name you gave in Jenkins Tool'
+        maven 'Maven-3.9'   // must match the name you gave in Jenkins Tool
     }
 
     stages{
@@ -22,6 +20,22 @@ pipeline{
                 checkout scm
             }
         }
+
+        // Gets short git commit hash automatically
+        // No manual input needed ever
+        stage{
+            steps{
+                script{
+                    df gitCommit = sh(
+                    script: "git rev-parse --short HEAD",
+                    returnStdout: true
+                    ).trim()
+                    env.IMAGE_TAG = gitCommit
+                    echo "Image tag set to: ${env.IMAGE_TAG}"
+                }
+            }
+        }
+       
 
         stage("Maven build"){
             steps{
@@ -38,14 +52,14 @@ pipeline{
                 """
             }
         }
-
+        
+        #Login to ECR using IAM Role (no password needed)
+        #Push both tags
         stage("Push to ECR"){
             steps{
                 sh """ 
-                #Login to ECR using IAM Role (no password needed)
                 aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-
-                #Push both tags
+               
                 docker push ${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
                 docker push ${ECR_REGISTRY}/${APP_NAME}:latest
                 
@@ -56,6 +70,8 @@ pipeline{
         stage("deploy on build agent"){
             steps{
                 sh ''' 
+                    aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                    export IMAGE_URI=${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
                     docker-compose down || true
                     docker-compose up -d
                 
@@ -72,6 +88,10 @@ pipeline{
 
         failure{
             echo "❌ Pipeline failed. Check stage logs."
+        }
+        always {
+            // Clean up old images to save disk space
+            sh 'docker system prune -f --filter "until=24h"'
         }
     }
 }
