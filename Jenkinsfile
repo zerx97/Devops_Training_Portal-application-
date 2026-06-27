@@ -23,7 +23,7 @@ pipeline{
 
         // Gets short git commit hash automatically
         // No manual input needed ever
-        stage{
+        stage("Getting Git SHA as image-tag"){
             steps{
                 script{
                     df gitCommit = sh(
