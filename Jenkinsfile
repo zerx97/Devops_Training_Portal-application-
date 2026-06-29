@@ -7,7 +7,10 @@ pipeline{
     environment{
         APP_NAME = "devops-training-portal"
         AWS_REGION = "us-east-1"
-        ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com"
+        ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com"       
+        // Update ECR_REGISTRY after terraform apply with output: ecr_repository_url
+        // Remove the repository name from it — keep only the registry part
+        // e.g. 110425445190.dkr.ecr.us-east-1.amazonaws.com
         SECRET_NAME = "devops-training-portal/db-credentials"
     }
     tools {
@@ -53,7 +56,10 @@ pipeline{
 
                     // Parse JSON and set each value as env variable
                     def secrets = readJSON text: secretJson
-                    
+                    // Spring Boot datasource — URL now points to RDS endpoint
+                    // Update SPRING_DATASOURCE_URL in Secrets Manager first
+                    // with value from terraform output rds_endpoint
+
                     env.SPRING_DATASOURCE_URL      = secrets.SPRING_DATASOURCE_URL
                     env.SPRING_DATASOURCE_USERNAME = secrets.SPRING_DATASOURCE_USERNAME
                     env.SPRING_DATASOURCE_PASSWORD = secrets.SPRING_DATASOURCE_PASSWORD
@@ -93,7 +99,10 @@ pipeline{
                 """
             }
         }
-
+        
+        //Pulls image from ECR and deploys via docker-compose
+        // Exports secrets as env vars so docker-compose can use them
+        // Spring Boot connects to RDS (not Docker MySQL anymore)
         stage("deploy on build agent"){
             steps{
                 sh """
@@ -102,6 +111,11 @@ pipeline{
                     echo "Deploying image: ${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}"
                     
                     export IMAGE_URI=${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
+                    
+                    export SPRING_DATASOURCE_URL=${env.SPRING_DATASOURCE_URL}
+                    export SPRING_DATASOURCE_USERNAME=${env.SPRING_DATASOURCE_USERNAME}
+                    export SPRING_DATASOURCE_PASSWORD=${env.SPRING_DATASOURCE_PASSWORD}
+
                     docker-compose down || true
                     docker-compose up -d
                 
@@ -112,6 +126,7 @@ pipeline{
     post {
         success{
             echo "✅ Built, pushed to ECR and deployed successfully! Build #${BUILD_NUMBER}"
+            echo "✅ Image: ${ECR_REGISTRY}/${APP_NAME}:${env.IMAGE_TAG}"
 
             echo "✅ Application built and deployed successfully using build-agent"
         }
