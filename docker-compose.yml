@@ -1,14 +1,39 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml — Phase 2
+#
+# KEY DIFFERENCE FROM PHASE 1:
+# MySQL container is REMOVED completely
+# Spring Boot now connects to RDS MySQL (managed by AWS)
+# Only one service remains: app
+#
+# All environment variables injected by Jenkins at deploy time
+# Zero hardcoded passwords in this file
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
   app:
-  # 👇 Pull from ECR instead of local build
     image: ${IMAGE_URI:-110425445190.dkr.ecr.us-east-1.amazonaws.com/devops-training-portal:latest}
+    # IMAGE_URI is exported by Jenkins deploy stage
+    # Falls back to :latest if IMAGE_URI not set
+    # Update the fallback URL after terraform apply with new ECR repository URL
+
     container_name: portal-app
     restart: always
+    # auto-start if container crashes or EC2 reboots
+
     ports:
       - "8080:8080"
+      # host:container — Nginx proxies to localhost:8080
+
     environment:
+      # All values come from Jenkins which fetched them from Secrets Manager
+      # SPRING_DATASOURCE_URL now points to RDS endpoint — not Docker MySQL
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+
+    # No depends_on — MySQL container is gone
+    # Spring Boot connects directly to RDS endpoint
+    # RDS is always running (AWS managed) — no health check needed here
 
 
