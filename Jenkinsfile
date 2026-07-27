@@ -3,7 +3,7 @@ pipeline{
 
     environment{
         APP_NAME = "training-portal"
-        AWS-REGION = "us-east-1"
+        AWS_REGION = "us-east-1"
         ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com"
     }
 
