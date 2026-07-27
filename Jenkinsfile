@@ -44,6 +44,30 @@ pipeline{
                 """
             }
         }
+
+        stage("push to ECR"){
+            steps{
+                sh """ 
+                aws ecr get-login-password --region us-east-1 | docker login \
+                -- username AWS \
+                -- password-stdin 110425445190.dkr.ecr.us-east-1.amazonaws.com
+
+                docker tag training-portal:${IMAGE_TAG} \
+                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:${IMAGE_TAG}
+
+                docker tag training-portal:latest \
+                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:latest
+                
+                docker push \
+                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:${IMAGE_TAG}
+
+                docker push \
+                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:latest
+                
+                
+                """
+            }
+        }
     }
 
     post{
