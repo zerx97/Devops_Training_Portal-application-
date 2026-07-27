@@ -1,6 +1,12 @@
 pipeline{
     agent any
 
+    environment{
+        APP_NAME = "training-portal"
+        AWS-REGION = "us-east-1"
+        ECR_REGISTRY = "110425445190.dkr.ecr.us-east-1.amazonaws.com"
+    }
+
     tools{
         maven 'Maven'
     }
@@ -45,25 +51,39 @@ pipeline{
             }
         }
 
-        stage("push to ECR"){
+        stage("login to ECR"){
+            steps{
+                sh """
+                  aws ecr get-login-password --region ${AWS_REGION} | docker login \
+                --username AWS \
+                --password-stdin ${ECR_REGISTRY}
+                
+                 """ 
+            }
+        }
+        
+        stage("Tag docker image"){
+            steps{
+                sh """
+                docker tag ${APP_NAME}:${IMAGE_TAG} \
+                ${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
+
+                docker tag ${APP_NAME}:latest \
+                ${ECR_REGISTRY}/${APP_NAME}:latest
+                
+                 """
+            }
+        }
+
+        stage("Push Image to Amazon ECR"){
             steps{
                 sh """ 
-                aws ecr get-login-password --region us-east-1 | docker login \
-                --username AWS \
-                --password-stdin 110425445190.dkr.ecr.us-east-1.amazonaws.com
-
-                docker tag training-portal:${IMAGE_TAG} \
-                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:${IMAGE_TAG}
-
-                docker tag training-portal:latest \
-                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:latest
                 
                 docker push \
-                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:${IMAGE_TAG}
+                ${ECR_REGISTRY}/${APP_NAME}:${IMAGE_TAG}
 
                 docker push \
-                110425445190.dkr.ecr.us-east-1.amazonaws.com/training-portal:latest
-                
+                ${ECR_REGISTRY}/${APP_NAME}:latest
                 
                 """
             }
