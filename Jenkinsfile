@@ -12,6 +12,17 @@ pipeline{
             }
         }
 
+        stage("get git commit"){
+            steps{
+                script{
+                    env.IMAGE_TAG = sh(
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
+                }
+            }
+        }
+
         stage("build"){
             steps{
                 sh 'mvn clean package -DskipTests'
@@ -26,13 +37,11 @@ pipeline{
 
         stage("build docker image"){
             steps{
-                script{
-                    sh ''' 
-                     
-                      docker build -t training-portal:latest .
-                    
-                    '''
-                }
+               sh """ 
+                docker build -t training-portal:${IMAGE_TAG} \
+                -t traning-portal:latest .
+               
+                """
             }
         }
     }
