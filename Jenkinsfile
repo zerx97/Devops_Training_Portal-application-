@@ -39,7 +39,7 @@ pipeline{
             steps{
                sh """ 
                 docker build -t training-portal:${IMAGE_TAG} \
-                -t traning-portal:latest .
+                -t training-portal:latest .
                
                 """
             }
