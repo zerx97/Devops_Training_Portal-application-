@@ -23,6 +23,18 @@ pipeline{
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
+
+        stage("build docker image"){
+            steps{
+                script{
+                    sh ''' 
+                     
+                      docker build -t training-portal:latest .
+                    
+                    '''
+                }
+            }
+        }
     }
 
     post{
