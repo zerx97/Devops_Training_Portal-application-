@@ -16,7 +16,7 @@ echo "Deploying image tag: $IMAGE_TAG"
 AWS_REGION="us-east-1"
 ACCOUNT_ID="110425445190"
 REPOSITORY="training-portal"
-SECRET_NAME="username"
+SECRET_NAME="medisync/secretmanager"
 CONTAINER_NAME="training-portal"
 
 # ----------------------------
